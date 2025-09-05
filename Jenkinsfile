@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         SF_AUTH_FILE = "/root/myOrgAuth.txt"
+        OWNER_ID = "005dL00000mNOdVQAW" // Your Salesforce OwnerId
     }
 
     stages {
@@ -18,8 +19,11 @@ pipeline {
                     // Get the latest commit message
                     def commitMsg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
                     
-                    // Create Salesforce record
-                    sh "sf data record create -s myobject__c -v \"Name='${commitMsg}'\""
+                    // Create Salesforce record using auth file and OwnerId
+                    sh """
+                        sf auth login sfdx-url --sfdx-url-file \$SF_AUTH_FILE --set-default
+                        sf data record create -s myobject__c -v "Name='${commitMsg}' OwnerId='${OWNER_ID}'"
+                    """
                 }
             }
         }
